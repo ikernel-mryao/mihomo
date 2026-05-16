@@ -124,6 +124,11 @@ tail -f run/mihomo.log
 source ./enable-proxy.sh
 ```
 
+说明：
+
+- 这里必须用 `source`，这样代理环境变量才会留在当前 shell
+- `enable-proxy.sh` 和 `disable-proxy.sh` 不会修改你当前 shell 的 `set -e` / `set -u` 行为，避免 source 后把终端会话带崩
+
 关闭代理：
 
 ```bash

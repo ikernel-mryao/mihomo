@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 RUN_DIR="$ROOT_DIR/run"
@@ -108,4 +107,3 @@ print_missing_config_help() {
 - 该仓库不会把你的 config/config.yaml 上传到 GitHub
 EOF
 }
-

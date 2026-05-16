@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 unset http_proxy
 unset https_proxy
