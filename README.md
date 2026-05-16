@@ -223,3 +223,55 @@ config/config.yaml
 ./start-mihomo.sh
 source ./enable-proxy.sh
 ```
+
+### 4. `curl` 能通但 `docker pull` 超时
+
+现象通常是：
+
+- 当前终端里 `curl` 能走代理
+- `docker pull` 仍然超时
+
+原因是 `curl` 使用的是你当前 shell 的代理环境变量，而 `dockerd` 是 systemd 服务进程，不会继承当前终端里的 `http_proxy`。
+
+为 Docker 服务单独配置代理（假设 Mihomo HTTP 代理是 `127.0.0.1:7890`）：
+
+```bash
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf <<'EOF'
+[Service]
+Environment="HTTP_PROXY=http://127.0.0.1:7890"
+Environment="HTTPS_PROXY=http://127.0.0.1:7890"
+Environment="NO_PROXY=localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+sudo systemctl show --property=Environment docker
+```
+
+然后重试：
+
+```bash
+sudo docker pull vllm/vllm-openai:v0.18.0
+```
+
+说明：
+
+1. Docker 服务代理只支持 HTTP/HTTPS 代理地址；若你只有 SOCKS5，需要先转换成 HTTP 代理再给 Docker 用。
+2. 如果你使用 rootless Docker，需要改成 `systemctl --user` 配置对应的 Docker 用户服务。
+
+#### 代理端口怎么找
+
+在本仓库里优先用这两个方式：
+
+```bash
+./status-mihomo.sh
+```
+
+会直接显示监听端口。
+
+```bash
+awk -F ':' '$1 ~ /^[[:space:]]*mixed-port$/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' run/config.runtime.yaml
+```
+
+当前这套配置默认端口是 `7890`（`config/config.yaml` 与 `run/config.runtime.yaml` 的 `mixed-port`）。
