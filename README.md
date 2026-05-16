@@ -275,3 +275,42 @@ awk -F ':' '$1 ~ /^[[:space:]]*mixed-port$/ {gsub(/^[[:space:]]+|[[:space:]]+$/,
 ```
 
 当前这套配置默认端口是 `7890`（`config/config.yaml` 与 `run/config.runtime.yaml` 的 `mixed-port`）。
+
+#### 为什么 `127.0.0.1` 通常不用找
+
+`127.0.0.1` 是本机回环地址（localhost），表示“只监听本机自己”。
+
+本仓库默认配置是：
+
+- `allow-lan: false`
+- 未额外设置 `bind-address`
+
+在这种情况下，Mihomo 的 HTTP 代理通常只绑定在本机回环地址上，所以 Docker 代理地址一般写 `http://127.0.0.1:<端口>`，其中变化项主要是端口（`mixed-port`）。
+
+只有当你显式改了监听行为（例如开启 `allow-lan: true`、设置了 `bind-address`、或容器/远程主机访问场景）时，才需要改成其他地址。
+
+#### `docker pull` 一定要直连 Docker Hub 吗
+
+不一定。`vllm/vllm-openai:v0.18.0` 的上游来源是 Docker Hub，但你可以优先尝试国内镜像加速器，通常更快更稳。
+
+例如在 `/etc/docker/daemon.json` 配置镜像加速：
+
+```json
+{
+  "registry-mirrors": [
+    "https://<你的镜像加速地址>"
+  ]
+}
+```
+
+应用配置：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+说明：
+
+1. 镜像加速器可能存在同步延迟，个别 tag 可能暂时拉不到。
+2. 若加速器拉取失败，可保留本文前面的 Docker 代理方案，回退到代理访问官方源。
