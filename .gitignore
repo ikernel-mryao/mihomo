@@ -1,0 +1,8 @@
+downloads/
+run/
+config/*.yaml
+config/*.dat
+config/*.mmdb
+/*.yaml
+/*.yml
+nohup.out
