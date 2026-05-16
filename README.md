@@ -155,6 +155,20 @@ source ./disable-proxy.sh
 ./stop-mihomo.sh
 ```
 
+## 验证当前 Mihomo 代理是否可用
+
+执行下面这条命令：
+
+```bash
+source ./enable-proxy.sh && curl -sS https://api.ipify.org && echo && curl -I -sS https://api.anthropic.com | head -n 5
+```
+
+判断方式：
+
+1. 第一段会输出一个公网 IP，说明请求已经经由当前代理出站
+2. 第二段如果返回 `HTTP/2 404` 或其他正常的 HTTP 响应头，说明到 Anthropic 的网络链路已经打通
+3. 如果出现连接失败、超时或无法解析域名，再检查 `./status-mihomo.sh`、节点状态和本地网络限制
+
 ## 兼容性说明
 
 这个仓库已经处理了两类常见问题：
